@@ -1,20 +1,23 @@
 package com.example.Backend_PichaLAvado.Entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Column;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Users {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String email;
     private String name;
     private String apellido;  // Nuevo campo
     private String telefono;  // Nuevo campo
-
     private String password;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Autos> autos;
 
     public Users() {}
 
@@ -26,7 +29,17 @@ public class Users {
         this.password = password;
     }
 
+
     // Getters y Setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -65,5 +78,13 @@ public class Users {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public List<Autos> getAutos() {
+        return autos;
+    }
+
+    public void setAutos(List<Autos> autos) {
+        this.autos = autos;
     }
 }
