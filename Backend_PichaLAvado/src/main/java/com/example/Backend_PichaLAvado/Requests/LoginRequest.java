@@ -1,27 +1,30 @@
 package com.example.Backend_PichaLAvado.Requests;
 
 public class LoginRequest {
-    public LoginRequest() {
+    private String email;
+    private String password;
 
+    public LoginRequest() {
     }
 
-    public LoginRequest(String userId, String password) {
-        super();
-        this.userId = userId;
+    public LoginRequest(String email, String password) {
+        this.email = email;
         this.password = password;
     }
-    public String getUserId() {
-        return userId;
+
+    public String getEmail() {
+        return email;
     }
-    public void setUserId(String userId) {
-        this.userId = userId;
+
+    public void setEmail(String email) {
+        this.email = email;
     }
+
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
-    private String userId;
-    private String password;
 }

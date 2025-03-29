@@ -12,39 +12,40 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.HexFormat;
 import java.util.Map;
 import java.util.Optional;
+
 @Service
 public class UsersService {
     @Autowired
-    UsersRepository usersRepository;
+    private UsersRepository usersRepository;
+
+     // Método para registrar un usuario con contraseña encriptada
 
     public Users addUsers(Users users) {
-        users.setPassword(hashContrasenia(users.getPassword()));
+        users.setPassword(hashContrasenia(users.getPassword())); // Encripta la contraseña
         return usersRepository.save(users);
     }
 
-    public String hashContrasenia(String password) {
-        try {
-            MessageDigest instancia = MessageDigest.getInstance("SHA-256");
-            byte[] hash = instancia.digest(password.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error al encriptar la contraseña");
-        }
-    }
-
+    /**
+     * Método para autenticar un usuario
+     */
     public ResponseEntity<?> loginUser(LoginRequest loginRequest, HttpSession session) {
-        Optional<Users> userOptional = usersRepository.findById(loginRequest.getUserId());
+        System.out.println("Intentando login con: " + loginRequest.getEmail());
 
-        if (userOptional.isEmpty()) {
+        // Buscar usuario por email usando Optional
+        Optional<Users> optionalUser = usersRepository.findByEmail(loginRequest.getEmail());
+
+        if (optionalUser.isEmpty()) {
+            System.out.println("Usuario no encontrado");
             return ResponseEntity.status(401).body(Map.of("message", "Usuario no encontrado"));
         }
 
-        Users user = userOptional.get();
+        Users user = optionalUser.get(); // Extraer usuario del Optional
 
+        // Verificar contraseña encriptada
         if (!user.getPassword().equals(hashContrasenia(loginRequest.getPassword()))) {
+            System.out.println("Contraseña incorrecta");
             return ResponseEntity.status(401).body(Map.of("message", "Contraseña incorrecta"));
         }
 
@@ -55,9 +56,35 @@ public class UsersService {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Login exitoso");
         response.put("name", user.getName());
-        response.put("apellido", user.getApellido()); // Nuevo campo
-        response.put("telefono", user.getTelefono()); // Nuevo campo
+        response.put("apellido", user.getApellido());
+        response.put("telefono", user.getTelefono());
 
         return ResponseEntity.ok(response);
+    }
+
+
+    /**
+     * Método para cerrar sesión
+     */
+    public ResponseEntity<?> logoutUser(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(Map.of("message", "Logout exitoso"));
+    }
+
+    /**
+     * Método para encriptar la contraseña con SHA-256
+     */
+    private String hashContrasenia(String password) {
+        try {
+            MessageDigest instancia = MessageDigest.getInstance("SHA-256");
+            byte[] hash = instancia.digest(password.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error al encriptar la contraseña");
+        }
     }
 }
